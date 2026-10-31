@@ -218,4 +218,23 @@ class CatalogDeliveryTest extends TestCase
     {
         $this->get('/up')->assertOk();
     }
+
+    public function test_blank_settings_fall_back_to_safe_defaults(): void
+    {
+        $keys = ['CATALOG_RATE_LIMIT', 'CATALOG_CACHE_FRESH', 'CATALOG_MAX_AGE', 'CATALOG_CACHE_STORE', 'CACHE_LIMITER_STORE'];
+        $saved = array_intersect_key($_SERVER, array_flip($keys));
+        $_SERVER = array_merge($_SERVER, array_fill_keys($keys, ''), ['CATALOG_MAX_AGE' => '0']);
+        try {
+            $catalog = require config_path('catalog.php');
+            $cache = require config_path('cache.php');
+        } finally {
+            $_SERVER = array_merge(array_diff_key($_SERVER, array_flip($keys)), $saved);
+        }
+
+        $this->assertSame(600, $catalog['rate_limit']);
+        $this->assertSame(60, $catalog['fresh_seconds']);
+        $this->assertSame(0, $catalog['max_age']);
+        $this->assertNull($catalog['cache_store']);
+        $this->assertNull($cache['limiter']);
+    }
 }

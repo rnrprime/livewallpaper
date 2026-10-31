@@ -24,10 +24,11 @@ return [
     |
     | Store used by the rate limiter. Every throttled request writes here, so a
     | fast store (redis, or file on a single server) keeps limits off the database.
+    | Blank uses the default store; an empty name would fail every request.
     |
     */
 
-    'limiter' => env('CACHE_LIMITER_STORE'),
+    'limiter' => env('CACHE_LIMITER_STORE') ?: null,
 
     /*
     |--------------------------------------------------------------------------
