@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Support\MediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class WallpaperResource extends JsonResource
 {
@@ -13,8 +13,9 @@ class WallpaperResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'preview_image' => $this->preview_image ? Storage::disk('public')->url($this->preview_image) : null,
-            'file_url' => $this->file_url ? Storage::disk('public')->url($this->file_url) : null,
+            'preview_image' => MediaUrl::public($this->preview_image),
+            'preview_video' => MediaUrl::public($this->preview_video),
+            'file_url' => MediaUrl::public($this->file_url),
             'is_premium' => (bool) $this->is_premium,
             'category' => [
                 'id' => $this->category?->id,

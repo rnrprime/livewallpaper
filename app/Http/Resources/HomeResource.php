@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources;
 
+use App\Support\MediaUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class HomeResource extends JsonResource
 {
@@ -15,13 +15,13 @@ class HomeResource extends JsonResource
                 'id' => $this->id,
                 'name' => $this->name,
                 'slug' => $this->slug,
-                'thumbnail' => $this->thumbnail ? Storage::disk('public')->url($this->thumbnail) : null,
+                'thumbnail' => MediaUrl::public($this->thumbnail),
             ],
             'wallpapers' => $this->whenLoaded('wallpapers', fn () => $this->wallpapers->map(fn ($wallpaper) => [
                 'id' => $wallpaper->id,
                 'title' => $wallpaper->title,
-                'preview_image' => $wallpaper->preview_image ? Storage::disk('public')->url($wallpaper->preview_image) : null,
-                'file_url' => $wallpaper->file_url ? Storage::disk('public')->url($wallpaper->file_url) : null,
+                'preview_image' => MediaUrl::public($wallpaper->preview_image),
+                'file_url' => MediaUrl::public($wallpaper->file_url),
                 'is_premium' => (bool) $wallpaper->is_premium,
             ])->values()->all(), []),
         ];

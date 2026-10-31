@@ -39,6 +39,13 @@ class WallpaperForm
                     ->rules(['file', 'mimetypes:video/mp4,video/quicktime', 'mimes:mp4,mov'])
                     ->maxSize(51200)
                     ->required(),
+                FileUpload::make('preview_video')
+                    ->label('Lightweight preview video (optional)')
+                    ->helperText('Upload a short silent MP4, ideally under 3 MB, for efficient feed playback.')
+                    ->disk('public')->visibility('public')->directory('wallpapers/previews')
+                    ->acceptedFileTypes(['video/mp4'])->rules(['file', 'mimetypes:video/mp4', 'mimes:mp4'])
+                    ->maxSize(5120),
+                Toggle::make('is_published')->default(true)->inline(false),
                 Toggle::make('is_premium')
                     ->default(false)
                     ->inline(false),
