@@ -59,6 +59,7 @@ class CatalogDeliveryTest extends TestCase
     public function test_categories_keep_working_when_served_from_a_hardened_cache(): void
     {
         $category = $this->category();
+        $this->wallpaper($category);
         foreach (range(1, 3) as $attempt) {
             $this->getJson('/api/v1/categories')->assertOk()
                 ->assertJsonPath('data.0.id', $category->id)
@@ -212,6 +213,21 @@ class CatalogDeliveryTest extends TestCase
             $this->assertSame([$section['category']['name'].' 5', $section['category']['name'].' 4', $section['category']['name'].' 3'],
                 array_column($section['wallpapers'], 'title'));
         }
+    }
+
+    public function test_categories_without_published_wallpapers_are_hidden(): void
+    {
+        $this->category('Empty');
+        $drafts = $this->category('Drafts');
+        $draft = $this->wallpaper($drafts, ['is_published' => false]);
+        $this->wallpaper($this->category('Nature'));
+
+        $this->getJson('/api/v1/categories')->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Nature');
+        $this->getJson('/api/v1/home')->assertOk()->assertJsonCount(1, 'data');
+
+        $draft->update(['is_published' => true]);
+        $this->getJson('/api/v1/categories')->assertOk()->assertJsonCount(2, 'data');
+        $this->getJson('/api/v1/home')->assertOk()->assertJsonCount(2, 'data');
     }
 
     public function test_health_check_includes_the_database(): void

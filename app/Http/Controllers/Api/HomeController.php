@@ -19,6 +19,8 @@ class HomeController extends Controller
         return CatalogCache::respond($request, 'home', ['page' => $page], function () use ($request, $page) {
             $categories = Category::query()
                 ->select(['id', 'name', 'slug', 'thumbnail'])
+                // Empty or fully unpublished categories would only show blank sections.
+                ->whereHas('wallpapers', fn ($query) => $query->available())
                 ->with([
                     'wallpapers' => fn ($query) => $query
                         ->select(['id', 'title', 'category_id', 'preview_image', 'file_url', 'is_premium'])

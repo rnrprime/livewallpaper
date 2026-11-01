@@ -15,7 +15,9 @@ class CategoryController extends Controller
     {
         return CatalogCache::respond($request, 'categories', [], fn () => [
             'data' => CategoryResource::collection(
-                Category::query()->select(['id', 'name', 'slug', 'thumbnail'])->orderBy('name')->get()
+                Category::query()->select(['id', 'name', 'slug', 'thumbnail'])
+                    ->whereHas('wallpapers', fn ($query) => $query->available())
+                    ->orderBy('name')->get()
             )->resolve($request),
         ]);
     }
