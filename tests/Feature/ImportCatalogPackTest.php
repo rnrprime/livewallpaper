@@ -108,6 +108,25 @@ class ImportCatalogPackTest extends TestCase
         $this->assertSame(['catalog/v1/nebula-teal-1.jpg'], Storage::disk('public')->allFiles());
     }
 
+    public function test_a_failed_write_leaves_no_partial_files(): void
+    {
+        $disk = \Mockery::mock(Storage::disk('public'))->makePartial();
+        $disk->shouldReceive('put')->andReturnUsing(function ($path, $contents) {
+            if (str_ends_with($path, 'aurora-polar-1.mp4')) {
+                Storage::disk('public')->getDriver()->write($path, 'partial');
+
+                return false;
+            }
+
+            return Storage::disk('public')->getDriver()->writeStream($path, $contents) ?? true;
+        });
+        Storage::set('public', $disk);
+        $this->artisan('catalog:import-pack', ['directory' => $this->pack])
+            ->expectsOutputToContain('Could not write catalog/v1/aurora-polar-1.mp4')->assertFailed();
+        $this->assertSame([], Storage::disk('public')->allFiles());
+        $this->assertSame(0, Wallpaper::count());
+    }
+
     public function test_paths_outside_media_are_rejected(): void
     {
         $pack = json_decode(file_get_contents($this->pack.'/pack.json'), true);

@@ -74,6 +74,9 @@ class ImportCatalogPack extends Command
                 if ($disk->exists($target)) {
                     continue;
                 }
+                // Tracked before writing: a write cut short (disk full, quota) leaves a partial file
+                // that must be removed too, or it would block the next run as a "different file".
+                $created[] = $target;
                 $stream = fopen($source.'/'.$relative, 'rb');
                 try {
                     $ok = $disk->put($target, $stream, ['visibility' => 'public']);
@@ -81,9 +84,8 @@ class ImportCatalogPack extends Command
                     fclose($stream);
                 }
                 if (! $ok) {
-                    throw new RuntimeException('Could not write '.$target);
+                    throw new RuntimeException('Could not write '.$target.' (disk full or over quota?)');
                 }
-                $created[] = $target;
             }
 
             [$new, $updated, $retired] = DB::transaction(fn () => $this->writeCatalog($pack, $prefix));
